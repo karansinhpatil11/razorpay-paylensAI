@@ -1,3 +1,4 @@
+
 # PayLens AI
 
 PayLens AI is a payment-failure investigation dashboard composed of a React frontend, an Express/MongoDB API, and a FastAPI analysis service.
@@ -46,3 +47,6 @@ Open the URL Vite prints (normally `http://localhost:5173`). The backend listens
 ## API flow
 
 `POST /api/ai/investigate` accepts `{ "paymentId": "PAY1001" }`. The backend fetches the payment from MongoDB, sends its complete details to the AI service, and returns a risk score, level, root cause, evidence, confidence, and recommendation.
+=======
+# razorpay_buildathon-paylenAI
+
