@@ -1,6 +1,7 @@
 
 import { useEffect, useState } from "react";
 import { getPayments } from "../services/paymentService";
+import { realtime } from "../services/realtime";
 
 const usePayments = () => {
   const [payments, setPayments] = useState([]);
@@ -56,8 +57,29 @@ const usePayments = () => {
 
     fetchPayments();
 
+    const updatePayments = (event) => {
+      if (!isMounted) return;
+
+      setPayments((current) => {
+        const payment = event.payment;
+        if (event.operation === "delete" || !payment) {
+          return current.filter((item) => item._id !== event.paymentId);
+        }
+
+        const existingIndex = current.findIndex((item) => item._id === payment._id);
+        if (existingIndex === -1) return [payment, ...current];
+
+        const next = [...current];
+        next[existingIndex] = payment;
+        return next;
+      });
+    };
+
+    realtime.on("payment:changed", updatePayments);
+
     return () => {
       isMounted = false;
+      realtime.off("payment:changed", updatePayments);
     };
   }, []);
 

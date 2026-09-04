@@ -14,6 +14,16 @@ const investigationSchema = new mongoose.Schema(
       default: "",
     },
 
+    riskScore: {
+      type: Number,
+      default: 0,
+    },
+
+    riskLevel: {
+      type: String,
+      default: "LOW",
+    },
+
     confidence: {
       type: Number,
       default: 0,
@@ -27,6 +37,11 @@ const investigationSchema = new mongoose.Schema(
     recommendation: {
       type: String,
       default: "",
+    },
+
+    analysisSource: {
+      type: String,
+      default: "fastapi",
     },
   },
   {

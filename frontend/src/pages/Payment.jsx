@@ -58,7 +58,12 @@ function Payments() {
                   className="border-b border-slate-100 transition hover:bg-slate-50"
                 >
                   <td className="p-3">
-                    <span className="font-semibold text-slate-800">{payment.paymentId}</span>
+                    <button
+                      onClick={() => navigate(`/payments/${payment.paymentId}`)}
+                      className="font-semibold text-slate-800 hover:text-indigo-600 hover:underline cursor-pointer"
+                    >
+                      {payment.paymentId}
+                    </button>
                   </td>
 
                   <td className="p-3">
@@ -78,20 +83,27 @@ function Payments() {
                   </td>
 
                   <td className="p-3">
-
-                    {payment.status === "FAILED" && (
+                    <div className="flex items-center gap-2">
                       <button
-                        onClick={() =>
-                          navigate(
-                            `/investigation/${payment.paymentId}`
-                          )
-                        }
-                        className="rounded-lg bg-indigo-600 px-3 py-2 text-xs font-semibold text-white hover:bg-indigo-700"
+                        onClick={() => navigate(`/payments/${payment.paymentId}`)}
+                        className="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50 cursor-pointer"
                       >
-                        Investigate
+                        Details
                       </button>
-                    )}
 
+                      {payment.status === "FAILED" && (
+                        <button
+                          onClick={() =>
+                            navigate(
+                              `/investigation/${payment.paymentId}`
+                            )
+                          }
+                          className="rounded-lg bg-indigo-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-indigo-700 cursor-pointer"
+                        >
+                          Investigate
+                        </button>
+                      )}
+                    </div>
                   </td>
 
                 </tr>

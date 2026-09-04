@@ -1,4 +1,6 @@
 const express = require("express");
+const http = require("http");
+const { Server } = require("socket.io");
 const cors = require("cors");
 const dotenv = require("dotenv");
 const connectDB = require("./src/config/db");
@@ -13,6 +15,13 @@ const { notFound, errorHandler } = require("./src/middleware/errorMiddleware");
 dotenv.config();
 
 const app = express();
+const server = http.createServer(app);
+const io = new Server(server, {
+  cors: {
+    origin: process.env.CLIENT_ORIGIN || "http://localhost:5173",
+    methods: ["GET", "POST"],
+  },
+});
 
 // ===============================
 // MongoDB
@@ -59,9 +68,11 @@ app.use(errorHandler);
 const PORT = Number(process.env.PORT) || 5000;
 async function start() {
   await connectDB();
-  app.listen(PORT, () => console.log(`PayLens backend listening on http://localhost:${PORT}`));
+  const { startPaymentStream } = require("./src/realtime/paymentStream");
+  startPaymentStream(io);
+  server.listen(PORT, () => console.log(`PayLens backend listening on http://localhost:${PORT}`));
 }
 if (require.main === module) {
   start().catch((error) => { console.error("Unable to start backend:", error.message); process.exit(1); });
 }
-module.exports = { app, start };
+module.exports = { app, server, start };

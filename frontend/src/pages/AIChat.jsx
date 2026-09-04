@@ -50,13 +50,38 @@ function AIChat() {
 
       console.log("AI RESPONSE:", result);
 
-      // Handle different possible backend response formats
-      const aiText =
-        result?.answer ||
-        result?.response ||
-        result?.message ||
-        result?.recommendation ||
-        "AI investigation completed, but no response was returned.";
+      let aiText = "";
+      if (result?.root_cause || result?.rootCause) {
+        const rootCause = result.root_cause || result.rootCause;
+        const riskLevel =
+          result.riskLevel ||
+          (result.riskScore >= 70
+            ? "HIGH"
+            : result.riskScore >= 40
+            ? "MEDIUM"
+            : "LOW");
+        const confidence = result.confidence ?? result.riskScore ?? 0;
+        const rec = result.recommendation || "No immediate action required.";
+        const evidenceStr =
+          Array.isArray(result.evidence) && result.evidence.length > 0
+            ? `\n\nKey Evidence:\n• ${result.evidence.join("\n• ")}`
+            : "";
+
+        aiText = `🔍 Investigation Report for ${result.paymentId || paymentId}:
+• Root Cause: ${rootCause}
+• Risk Level: ${riskLevel} (Score: ${result.riskScore ?? 0}/100)
+• AI Confidence: ${confidence}%${evidenceStr}
+
+💡 Recommendation:
+${rec}`;
+      } else {
+        aiText =
+          result?.answer ||
+          result?.response ||
+          result?.message ||
+          result?.recommendation ||
+          "AI investigation completed, but no findings were returned.";
+      }
 
       setMessages((prev) => [
         ...prev,
@@ -124,7 +149,7 @@ function AIChat() {
 
                   {/* Message */}
                   <div
-                    className={`max-w-xl rounded-xl px-4 py-3 text-sm leading-6 ${
+                    className={`max-w-xl rounded-xl px-4 py-3 text-sm leading-6 whitespace-pre-line ${
                       item.role === "user"
                         ? "bg-slate-900 text-white"
                         : "bg-slate-100 text-slate-700"

@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { getAnalytics } from "../services/analyticsService";
+import { realtime } from "../services/realtime";
 
 const useAnalytics = () => {
   const [analytics, setAnalytics] = useState(null);
@@ -31,6 +32,12 @@ const useAnalytics = () => {
     };
 
     loadAnalytics();
+
+    realtime.on("payment:changed", loadAnalytics);
+
+    return () => {
+      realtime.off("payment:changed", loadAnalytics);
+    };
   }, []);
 
   return {

@@ -1,12 +1,11 @@
 
-const axios = require("axios");
-
 const Payment = require("../models/Payment");
 const Investigation = require("../models/Investigation");
+const { investigatePayment: runAiInvestigation } = require("../services/aiService");
 
 // ======================================================
 // RUN AI INVESTIGATION
-// POST /api/investigations/:paymentId/investigate
+// POST /api/investigations/:paymentId
 // ======================================================
 
 const investigatePayment = async (req, res) => {
@@ -31,24 +30,8 @@ const investigatePayment = async (req, res) => {
 
     console.log("Payment found:", payment);
 
-    // Send payment information to FastAPI
-    const aiResponse = await axios.post(
-      `${process.env.AI_SERVICE_URL || "http://127.0.0.1:8000"}/api/investigate`,
-      {
-        paymentId: payment.paymentId,
-        amount: payment.amount,
-        currency: payment.currency,
-        status: payment.status,
-        bank: payment.bank || "",
-        method: payment.method || "",
-        errorCode: payment.errorCode || "",
-        errorMessage: payment.errorMessage || "",
-      }
-    );
-
-    console.log("AI RESPONSE:", aiResponse.data);
-
-    const aiResult = aiResponse.data;
+    const aiResult = await runAiInvestigation(payment.toObject());
+    console.log("AI RESPONSE:", aiResult);
 
     // Save investigation in MongoDB
     const investigation =
@@ -58,11 +41,13 @@ const investigatePayment = async (req, res) => {
         },
         {
           paymentId: paymentId,
-          root_cause: aiResult.root_cause,
-          confidence: aiResult.confidence,
+          root_cause: aiResult.root_cause || aiResult.rootCause || "",
+          confidence: aiResult.confidence || 0,
+          riskScore: aiResult.riskScore || 0,
+          riskLevel: aiResult.riskLevel || "LOW",
           evidence: aiResult.evidence || [],
-          recommendation:
-            aiResult.recommendation || "",
+          recommendation: aiResult.recommendation || "",
+          analysisSource: aiResult.analysisSource || "fastapi",
         },
         {
           new: true,
@@ -78,13 +63,13 @@ const investigatePayment = async (req, res) => {
     // Return result to React
     return res.status(200).json({
       paymentId,
-      riskScore: aiResult.riskScore,
-      riskLevel: aiResult.riskLevel,
+      riskScore: investigation.riskScore,
+      riskLevel: investigation.riskLevel,
       root_cause: investigation.root_cause,
       confidence: investigation.confidence,
       evidence: investigation.evidence,
-      recommendation:
-        investigation.recommendation,
+      recommendation: investigation.recommendation,
+      analysisSource: investigation.analysisSource,
     });
 
   } catch (error) {

@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { getIncidents } from "../services/incidentService";
+import { realtime } from "../services/realtime";
 
 const useIncidents = () => {
 
@@ -41,23 +42,12 @@ const useIncidents = () => {
     };
 
 
-    // Initial API call
     loadIncidents();
 
+    realtime.on("payment:changed", loadIncidents);
 
-    // Auto refresh every 5 seconds
-    const interval = setInterval(() => {
-
-      loadIncidents();
-
-    }, 5000);
-
-
-    // Cleanup
     return () => {
-
-      clearInterval(interval);
-
+      realtime.off("payment:changed", loadIncidents);
     };
 
   }, []);

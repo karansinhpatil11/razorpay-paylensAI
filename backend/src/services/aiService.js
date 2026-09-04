@@ -1,4 +1,5 @@
 const axios = require("axios");
+const { investigateLocally } = require("./fallbackInvestigation");
 
 const AI_SERVICE_URL = process.env.AI_SERVICE_URL || "http://127.0.0.1:8000";
 
@@ -7,17 +8,17 @@ const investigatePayment = async (payment) => {
     const response = await axios.post(
       `${AI_SERVICE_URL}/api/investigate`,
       payment,
-      { timeout: 10000 }
+      { timeout: 5000 }
     );
 
-    return response.data;
+    return { ...response.data, analysisSource: "fastapi" };
   } catch (error) {
     console.error(
-      "AI Service Error:",
+      "FastAPI investigation unavailable; using local fallback:",
       error.response?.data || error.message
     );
 
-    throw error;
+    return investigateLocally(payment);
   }
 };
 module.exports = { investigatePayment };

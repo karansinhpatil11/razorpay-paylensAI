@@ -40,7 +40,12 @@ function PaymentTable({ payments = [] }) {
               >
 
                 <td className="p-3">
-                  <span className="font-semibold text-slate-800">{payment?.paymentId || "-"}</span>
+                  <button
+                    onClick={() => navigate(`/payments/${payment?.paymentId}`)}
+                    className="font-semibold text-slate-800 hover:text-indigo-600 hover:underline cursor-pointer"
+                  >
+                    {payment?.paymentId || "-"}
+                  </button>
                 </td>
 
                 <td className="p-3">
