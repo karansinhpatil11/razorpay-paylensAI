@@ -44,7 +44,7 @@ PayLens AI is a payment-failure investigation dashboard composed of a React fron
    npm run dev
    ```
 
-Open the URL Vite prints (normally `http://localhost:5173`). The backend listens on port 5000 and the AI service on port 8000.
+Open the URL Vite prints (normally `http://localhost:5173`). The backend listens on port 5001 and the AI service on port 8000.
 
 ## API flow
 

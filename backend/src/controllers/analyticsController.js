@@ -1,4 +1,5 @@
 const Payment = require("../models/Payment");
+const { getAnalyticsInsights } = require("../services/aiService");
 
 const getAnalytics = async (req, res) => {
   try {
@@ -7,41 +8,37 @@ const getAnalytics = async (req, res) => {
       {
         $group: {
           _id: null,
-
           totalPayments: { $sum: 1 },
-
           successfulPayments: {
             $sum: {
               $cond: [
                 { $eq: [{ $toUpper: "$status" }, "SUCCESS"] },
                 1,
-                0
-              ]
-            }
+                0,
+              ],
+            },
           },
-
           failedPayments: {
             $sum: {
               $cond: [
                 { $eq: [{ $toUpper: "$status" }, "FAILED"] },
                 1,
-                0
-              ]
-            }
+                0,
+              ],
+            },
           },
-
           totalAmount: {
-            $sum: "$amount"
-          }
-        }
-      }
+            $sum: "$amount",
+          },
+        },
+      },
     ]);
 
     const summary = summaryResult[0] || {
       totalPayments: 0,
       successfulPayments: 0,
       failedPayments: 0,
-      totalAmount: 0
+      totalAmount: 0,
     };
 
     // 2. Failure rate
@@ -59,21 +56,17 @@ const getAnalytics = async (req, res) => {
     const status = await Payment.aggregate([
       {
         $group: {
-          _id: {
-            $toUpper: "$status"
-          },
-          count: {
-            $sum: 1
-          }
-        }
+          _id: { $toUpper: "$status" },
+          count: { $sum: 1 },
+        },
       },
       {
         $project: {
           _id: 0,
           status: "$_id",
-          count: 1
-        }
-      }
+          count: 1,
+        },
+      },
     ]);
 
     // 4. Failures by bank
@@ -81,30 +74,28 @@ const getAnalytics = async (req, res) => {
       {
         $match: {
           $expr: {
-            $eq: [{ $toUpper: "$status" }, "FAILED"]
-          }
-        }
+            $eq: [{ $toUpper: "$status" }, "FAILED"],
+          },
+        },
       },
       {
         $group: {
           _id: "$bank",
-          failures: {
-            $sum: 1
-          }
-        }
+          failures: { $sum: 1 },
+        },
       },
       {
         $project: {
           _id: 0,
           bank: "$_id",
-          failures: 1
-        }
+          failures: 1,
+        },
       },
       {
         $sort: {
-          failures: -1
-        }
-      }
+          failures: -1,
+        },
+      },
     ]);
 
     // 5. Failures by payment method
@@ -112,60 +103,65 @@ const getAnalytics = async (req, res) => {
       {
         $match: {
           $expr: {
-            $eq: [{ $toUpper: "$status" }, "FAILED"]
-          }
-        }
+            $eq: [{ $toUpper: "$status" }, "FAILED"],
+          },
+        },
       },
       {
         $group: {
           _id: "$method",
-          failures: {
-            $sum: 1
-          }
-        }
+          failures: { $sum: 1 },
+        },
       },
       {
         $project: {
           _id: 0,
           method: "$_id",
-          failures: 1
-        }
+          failures: 1,
+        },
       },
       {
         $sort: {
-          failures: -1
-        }
-      }
+          failures: -1,
+        },
+      },
     ]);
 
-    // Final response
-    res.status(200).json({
+    // 6. Request Gemini AI Analytics Insights
+    const payload = {
       summary: {
         totalPayments: summary.totalPayments,
         successfulPayments: summary.successfulPayments,
         failedPayments: summary.failedPayments,
         totalAmount: summary.totalAmount,
-        failureRate
+        failureRate,
       },
-
       status,
-
       banks,
+      methods,
+    };
 
-      methods
+    const aiInsights = await getAnalyticsInsights(payload);
+
+    // Final response
+    res.status(200).json({
+      summary: payload.summary,
+      status,
+      banks,
+      methods,
+      aiInsights,
     });
-
   } catch (error) {
     console.error("Analytics error:", error);
 
     res.status(500).json({
       success: false,
       message: "Failed to generate analytics",
-      error: error.message
+      error: error.message,
     });
   }
 };
 
 module.exports = {
-  getAnalytics
+  getAnalytics,
 };

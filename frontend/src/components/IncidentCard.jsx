@@ -245,6 +245,33 @@ function IncidentCard({ incident }) {
 
       </div>
 
+      {/* GEMINI AI DIAGNOSTIC INSIGHTS */}
+      {(incident.root_cause_hypothesis || incident.mitigation_step) && (
+        <div className="mt-5 rounded-lg border border-indigo-100 bg-indigo-50/60 p-4">
+          <div className="flex items-center gap-1.5 text-xs font-semibold text-indigo-700">
+            <span>✨ Gemini AI Incident Diagnosis</span>
+          </div>
+          {incident.root_cause_hypothesis && (
+            <p className="mt-2 text-xs text-slate-700">
+              <strong className="text-slate-900">Hypothesis: </strong>
+              {incident.root_cause_hypothesis}
+            </p>
+          )}
+          {incident.blast_radius && (
+            <p className="mt-1.5 text-xs text-slate-600">
+              <strong className="text-slate-900">Blast Radius: </strong>
+              {incident.blast_radius}
+            </p>
+          )}
+          {incident.mitigation_step && (
+            <p className="mt-1.5 text-xs text-emerald-800 bg-emerald-50/80 p-2 rounded border border-emerald-200">
+              <strong>Mitigation: </strong>
+              {incident.mitigation_step}
+            </p>
+          )}
+        </div>
+      )}
+
 
       {/* INVESTIGATION */}
 

@@ -8,17 +8,60 @@ const investigatePayment = async (payment) => {
     const response = await axios.post(
       `${AI_SERVICE_URL}/api/investigate`,
       payment,
-      { timeout: 5000 }
+      { timeout: 15000 }
     );
 
-    return { ...response.data, analysisSource: "fastapi" };
+    return { ...response.data, analysisSource: response.data.analysisSource || "fastapi" };
   } catch (error) {
-    console.error(
-      "FastAPI investigation unavailable; using local fallback:",
+    console.warn(
+      "AI Service investigation unavailable; using local fallback:",
       error.response?.data || error.message
     );
 
     return investigateLocally(payment);
   }
 };
-module.exports = { investigatePayment };
+
+const analyzeIncidents = async (incidents, failedPayments = []) => {
+  try {
+    const response = await axios.post(
+      `${AI_SERVICE_URL}/api/incidents/analyze`,
+      { incidents, failedPayments },
+      { timeout: 15000 }
+    );
+
+    return response.data;
+  } catch (error) {
+    console.warn(
+      "AI Service incidents analysis unavailable; using fallback:",
+      error.response?.data || error.message
+    );
+
+    return null;
+  }
+};
+
+const getAnalyticsInsights = async (analyticsData) => {
+  try {
+    const response = await axios.post(
+      `${AI_SERVICE_URL}/api/analytics/insights`,
+      analyticsData,
+      { timeout: 15000 }
+    );
+
+    return response.data;
+  } catch (error) {
+    console.warn(
+      "AI Service analytics insights unavailable; using fallback:",
+      error.response?.data || error.message
+    );
+
+    return null;
+  }
+};
+
+module.exports = {
+  investigatePayment,
+  analyzeIncidents,
+  getAnalyticsInsights,
+};
